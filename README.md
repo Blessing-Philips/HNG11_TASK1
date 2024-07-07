@@ -1,0 +1,1 @@
+A basic web server that gives the location and weather temperature of a client
