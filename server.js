@@ -1,5 +1,10 @@
 const express = require('express');
+
+// Handles making HTTP requests to external APIs.
 const axios = require('axios');
+
+// Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env
+//  Manages environment variables to keep sensitive data secure and configuration flexible.
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -11,10 +16,20 @@ server.get('/api/hello', async (req, res) => {
     let apiKey = process.env.LOCATION_API_KEY
     let weatherApiKey = process.env.WEATHER_API_KEY;
 
+    /* Without this ipify, I got error 423-which indicated that the ip the geolocation api was getting was a
+     bogon( Bogons are IP addresses that should not be routable on the public internet, such as private IP
+    ranges or reserved addresses) ip address. So, this was used to get the correct IP address of the client. 
+    Using this, geolocation would query the ip address to then get the location.
+     */
     let ipifyResponse = await axios.get('https://api.ipify.org?format=json');
+
+    // The (.) is used to specify the particular property we want to access or make use of
     let client_ip = ipifyResponse.data.ip;
 
     // Construct the URL for the geolocation API
+    /* Read the ipgeolocation documentation and checked for the base url and ip and city as properties of the 
+        url. Used the backtick cuz the process.env... can't be inserted as strings ordinarily. 
+    */
     let ipGeoUrl = `https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${client_ip}&fields=city`;
 
     try {
@@ -22,6 +37,7 @@ server.get('/api/hello', async (req, res) => {
         let location = response.data.city || 'Location not found';
 
         // Construct the URL for the weather API
+        // The q parameter is needed to access the property, I guess
         let weatherUrl = `http://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${location}`
 
         let response2 = await axios.get(weatherUrl);
